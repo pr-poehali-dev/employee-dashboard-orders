@@ -44,6 +44,8 @@ interface OrdersListProps {
   setSelectedDate: (date: Date | undefined) => void;
   tariffs: Tariff[];
   isMobile: boolean;
+  updateOrder: (order: Order) => void;
+  deleteOrder: (orderId: string) => void;
 }
 
 const OrdersList = ({
@@ -58,7 +60,9 @@ const OrdersList = ({
   selectedDate,
   setSelectedDate,
   tariffs,
-  isMobile
+  isMobile,
+  updateOrder,
+  deleteOrder
 }: OrdersListProps) => {
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -124,6 +128,7 @@ const OrdersList = ({
                     selectedDate={selectedDate}
                     onDateSelect={setSelectedDate}
                     onCancel={handleCancel}
+                    onSubmit={updateOrder}
                     tariffs={tariffs}
                   />
                 </div>
@@ -148,7 +153,7 @@ const OrdersList = ({
                   Добавить заказ
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-2xl">
+              <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>{editingOrder ? 'Редактирование заказа' : 'Создание нового заказа'}</DialogTitle>
                 </DialogHeader>
@@ -157,6 +162,7 @@ const OrdersList = ({
                   selectedDate={selectedDate}
                   onDateSelect={setSelectedDate}
                   onCancel={handleCancel}
+                  onSubmit={updateOrder}
                   tariffs={tariffs}
                 />
               </DialogContent>
@@ -226,20 +232,32 @@ const OrdersList = ({
                           </div>
                         </div>
                         
-                        {(order.status === 'payment_pending' || order.status === 'publication_pending') && (
+                        <div className="flex items-center gap-2">
+                          {(order.status === 'payment_pending' || order.status === 'publication_pending' || order.status === 'processing') && (
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              className="h-7 px-2 text-xs"
+                              onClick={() => {
+                                setEditingOrder(order);
+                                setSelectedDate(new Date(order.publishDate));
+                              }}
+                            >
+                              <Icon name="Edit" size={12} className="mr-1" />
+                              Изменить
+                            </Button>
+                          )}
+                          
                           <Button 
                             variant="outline" 
                             size="sm"
-                            className="h-7 px-2 text-xs self-start sm:self-auto"
-                            onClick={() => {
-                              setEditingOrder(order);
-                              setSelectedDate(new Date(order.publishDate));
-                            }}
+                            className="h-7 px-2 text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
+                            onClick={() => deleteOrder(order.id)}
                           >
-                            <Icon name="Edit" size={12} className="mr-1" />
-                            Изменить
+                            <Icon name="Trash2" size={12} className="mr-1" />
+                            Удалить
                           </Button>
-                        )}
+                        </div>
                       </div>
                     </div>
                   </CardContent>

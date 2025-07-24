@@ -41,70 +41,10 @@ const Header = ({ balance, paymentDetails, setPaymentDetails }: HeaderProps) => 
                 <p className="text-sm font-semibold text-slate-900">${balance.toFixed(2)}</p>
               </div>
               
-              <Popover open={isPayoutOpen} onOpenChange={setIsPayoutOpen}>
-                <PopoverTrigger asChild>
-                  <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700">
-                    <Icon name="CreditCard" size={14} className="mr-1" />
-                    Выплата
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-72" align="end">
-                  <div className="space-y-3">
-                    <div className="text-center border-b pb-2">
-                      <h3 className="font-semibold text-slate-900">Выплата средств</h3>
-                      <p className="text-sm text-slate-500">Доступно: ${balance.toFixed(2)}</p>
-                    </div>
-                    
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-2">
-                      <div className="flex items-center space-x-2">
-                        <Icon name="Info" size={14} className="text-blue-600" />
-                        <span className="text-xs font-medium text-blue-800">График выплат</span>
-                      </div>
-                      <p className="text-xs text-blue-700 mt-1">Выплаты каждую пятницу автоматически</p>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <div>
-                        <Label className="text-xs font-medium">Реквизиты карты</Label>
-                        <Input 
-                          value={paymentDetails.cardNumber}
-                          onChange={(e) => setPaymentDetails({...paymentDetails, cardNumber: e.target.value})}
-                          placeholder="0000 0000 0000 0000"
-                          className="text-sm h-8"
-                        />
-                      </div>
-                      
-                      <div>
-                        <Label className="text-xs font-medium">Номер телефона для СБП</Label>
-                        <Input 
-                          value={paymentDetails.phoneNumber}
-                          onChange={(e) => setPaymentDetails({...paymentDetails, phoneNumber: e.target.value})}
-                          placeholder="+7 (900) 123-45-67"
-                          className="text-sm h-8"
-                        />
-                      </div>
-                      
-                      <div className="flex space-x-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="flex-1 h-8 text-xs"
-                          onClick={() => setIsPayoutOpen(false)}
-                        >
-                          Отмена
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          className="flex-1 h-8 text-xs bg-indigo-600 hover:bg-indigo-700"
-                          onClick={() => setIsPayoutOpen(false)}
-                        >
-                          Сохранить
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </PopoverContent>
-              </Popover>
+              <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700" onClick={() => setIsPayoutOpen(true)}>
+                <Icon name="CreditCard" size={14} className="mr-1" />
+                Выплата
+              </Button>
             </div>
           </div>
         </div>

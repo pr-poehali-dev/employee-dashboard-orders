@@ -78,6 +78,17 @@ const Index = () => {
     { name: '7d @everyone with Ping On Join & Join DM', price: 400 }
   ];
 
+  const updateOrder = (updatedOrder: Order) => {
+    setOrders(orders.map(order => 
+      order.id === updatedOrder.id ? updatedOrder : order
+    ));
+    setEditingOrder(null);
+  };
+
+  const deleteOrder = (orderId: string) => {
+    setOrders(orders.filter(order => order.id !== orderId));
+  };
+
   const stats = {
     total: orders.length,
     pending: orders.filter(o => o.status === 'payment_pending' || o.status === 'publication_pending').length,
@@ -109,6 +120,8 @@ const Index = () => {
           setSelectedDate={setSelectedDate}
           tariffs={tariffs}
           isMobile={isMobile}
+          updateOrder={updateOrder}
+          deleteOrder={deleteOrder}
         />
       </div>
     </div>

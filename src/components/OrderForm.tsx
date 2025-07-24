@@ -27,35 +27,62 @@ interface OrderFormProps {
   selectedDate: Date | undefined;
   onDateSelect: (date: Date | undefined) => void;
   onCancel: () => void;
+  onSubmit: (order: Order) => void;
   tariffs: Tariff[];
 }
 
-const OrderForm = ({ editingOrder, selectedDate, onDateSelect, onCancel, tariffs }: OrderFormProps) => {
+const OrderForm = ({ editingOrder, selectedDate, onDateSelect, onCancel, onSubmit, tariffs }: OrderFormProps) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    
+    const selectedTariff = tariffs.find(t => t.name === formData.get('tariff'));
+    const newOrder: Order = {
+      id: editingOrder?.id || Date.now().toString(),
+      channel: formData.get('channel') as string,
+      adText: formData.get('adText') as string,
+      tariff: formData.get('tariff') as string,
+      price: selectedTariff?.price || 0,
+      status: editingOrder?.status || 'payment_pending',
+      publishDate: selectedDate?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0],
+      createdBy: editingOrder?.createdBy || '@current_user',
+      screenshot: editingOrder?.screenshot
+    };
+    
+    onSubmit(newOrder);
+  };
+
   return (
-    <div className="space-y-4 py-4">
-      <div className="space-y-2">
-        <Label htmlFor="channel">Название канала</Label>
+    <form onSubmit={handleSubmit} className="space-y-3 py-2">
+      <div className="space-y-1">
+        <Label htmlFor="channel" className="text-xs">Название канала</Label>
         <Input 
           id="channel" 
+          name="channel"
           placeholder="Введите название канала" 
           defaultValue={editingOrder?.channel}
+          className="h-8 text-sm"
+          required
         />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="adText">Текст рекламы</Label>
+      <div className="space-y-1">
+        <Label htmlFor="adText" className="text-xs">Текст рекламы</Label>
         <Textarea 
           id="adText" 
+          name="adText"
           placeholder="Введите текст рекламного объявления" 
-          rows={3}
+          rows={2}
           defaultValue={editingOrder?.adText}
+          className="text-sm resize-none"
+          required
         />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="tariff">Тариф</Label>
-        <Select defaultValue={editingOrder?.tariff}>
-          <SelectTrigger>
+      <div className="space-y-1">
+        <Label htmlFor="tariff" className="text-xs">Тариф</Label>
+        <Select name="tariff" defaultValue={editingOrder?.tariff} required>
+          <SelectTrigger className="h-8 text-sm">
             <SelectValue placeholder="Выберите тариф" />
           </SelectTrigger>
           <SelectContent>
@@ -68,38 +95,38 @@ const OrderForm = ({ editingOrder, selectedDate, onDateSelect, onCancel, tariffs
         </Select>
       </div>
 
-      <div className="space-y-2">
-        <Label>Дата публикации</Label>
+      <div className="space-y-1">
+        <Label className="text-xs">Дата публикации</Label>
         <Calendar
           mode="single"
           selected={selectedDate || (editingOrder ? new Date(editingOrder.publishDate) : undefined)}
           onSelect={onDateSelect}
-          className="rounded-md border border-slate-200 mx-auto"
+          className="rounded-md border border-slate-200 mx-auto text-sm scale-90"
           disabled={(date) => date < new Date()}
         />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="screenshot">Скриншот квитанции</Label>
-        <Input id="screenshot" type="file" accept="image/*" />
+      <div className="space-y-1">
+        <Label htmlFor="screenshot" className="text-xs">Скриншот квитанции</Label>
+        <Input id="screenshot" type="file" accept="image/*" className="h-8 text-sm" />
         {editingOrder?.screenshot && (
-          <p className="text-sm text-slate-500">Текущий файл загружен</p>
+          <p className="text-xs text-slate-500">Текущий файл загружен</p>
         )}
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-2 pt-4">
+      <div className="flex flex-col sm:flex-row gap-2 pt-2">
         <Button 
           variant="outline" 
-          className="flex-1"
+          className="flex-1 h-8 text-sm"
           onClick={onCancel}
         >
           Отмена
         </Button>
-        <Button className="flex-1 bg-indigo-600 hover:bg-indigo-700">
+        <Button type="submit" className="flex-1 h-8 text-sm bg-indigo-600 hover:bg-indigo-700">
           {editingOrder ? 'Сохранить изменения' : 'Создать заказ'}
         </Button>
       </div>
-    </div>
+    </form>
   );
 };
 
