@@ -98,4 +98,20 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Прозрачный скроллбар для WebKit браузеров */
+  ::-webkit-scrollbar {
+    width: 0px;
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: transparent;
+  }
+
+  /* Скрытие скроллбара для Firefox */
+  html {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
 }
