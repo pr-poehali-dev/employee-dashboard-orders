@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -56,7 +57,10 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState('all');
   const [balance] = useState(145.50);
   const [isNewOrderOpen, setIsNewOrderOpen] = useState(false);
+  const [editingOrder, setEditingOrder] = useState<Order | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>();
+  const [paymentDetails, setPaymentDetails] = useState({ cardNumber: '4532 **** **** 1234' });
+  const [isPayoutOpen, setIsPayoutOpen] = useState(false);
 
   const tariffs = [
     { name: '3 Day @here', price: 150 },
@@ -116,10 +120,60 @@ const Index = () => {
               <p className="text-sm text-slate-500">Баланс</p>
               <p className="text-lg font-semibold text-slate-900">${balance.toFixed(2)}</p>
             </div>
-            <Button className="bg-indigo-600 hover:bg-indigo-700">
-              <Icon name="CreditCard" size={16} className="mr-2" />
-              Выплата
-            </Button>
+            <Popover open={isPayoutOpen} onOpenChange={setIsPayoutOpen}>
+              <PopoverTrigger asChild>
+                <Button className="bg-indigo-600 hover:bg-indigo-700">
+                  <Icon name="CreditCard" size={16} className="mr-2" />
+                  Выплата
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80" align="end">
+                <div className="space-y-4">
+                  <div className="text-center border-b pb-3">
+                    <h3 className="font-semibold text-slate-900">Выплата средств</h3>
+                    <p className="text-sm text-slate-500 mt-1">Доступно к выплате: <span className="font-medium">${balance.toFixed(2)}</span></p>
+                  </div>
+                  
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <div className="flex items-center space-x-2">
+                      <Icon name="Info" size={16} className="text-blue-600" />
+                      <span className="text-sm font-medium text-blue-800">График выплат</span>
+                    </div>
+                    <p className="text-sm text-blue-700 mt-1">Выплаты производятся каждую пятницу автоматически</p>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div>
+                      <Label className="text-sm font-medium">Реквизиты карты</Label>
+                      <Input 
+                        value={paymentDetails.cardNumber}
+                        onChange={(e) => setPaymentDetails({...paymentDetails, cardNumber: e.target.value})}
+                        placeholder="0000 0000 0000 0000"
+                        className="mt-1"
+                      />
+                    </div>
+                    
+                    <div className="flex space-x-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="flex-1"
+                        onClick={() => setIsPayoutOpen(false)}
+                      >
+                        Отмена
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        className="flex-1 bg-indigo-600 hover:bg-indigo-700"
+                        onClick={() => setIsPayoutOpen(false)}
+                      >
+                        Сохранить
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
       </header>
@@ -190,7 +244,12 @@ const Index = () => {
             <div className="flex items-center justify-between">
               <CardTitle className="text-xl font-semibold text-slate-900">Лента заказов</CardTitle>
               
-              <Dialog open={isNewOrderOpen} onOpenChange={setIsNewOrderOpen}>
+              <Dialog open={isNewOrderOpen || !!editingOrder} onOpenChange={(open) => {
+                if (!open) {
+                  setIsNewOrderOpen(false);
+                  setEditingOrder(null);
+                }
+              }}>
                 <DialogTrigger asChild>
                   <Button className="bg-indigo-600 hover:bg-indigo-700">
                     <Icon name="Plus" size={16} className="mr-2" />
@@ -199,23 +258,32 @@ const Index = () => {
                 </DialogTrigger>
                 <DialogContent className="max-w-2xl">
                   <DialogHeader>
-                    <DialogTitle>Создание нового заказа</DialogTitle>
+                    <DialogTitle>{editingOrder ? 'Редактирование заказа' : 'Создание нового заказа'}</DialogTitle>
                   </DialogHeader>
                   
                   <div className="space-y-6 py-4">
                     <div className="space-y-2">
                       <Label htmlFor="channel">Название канала</Label>
-                      <Input id="channel" placeholder="Введите название канала" />
+                      <Input 
+                        id="channel" 
+                        placeholder="Введите название канала" 
+                        defaultValue={editingOrder?.channel}
+                      />
                     </div>
 
                     <div className="space-y-2">
                       <Label htmlFor="adText">Текст рекламы</Label>
-                      <Textarea id="adText" placeholder="Введите текст рекламного объявления" rows={3} />
+                      <Textarea 
+                        id="adText" 
+                        placeholder="Введите текст рекламного объявления" 
+                        rows={4}
+                        defaultValue={editingOrder?.adText}
+                      />
                     </div>
 
                     <div className="space-y-2">
                       <Label htmlFor="tariff">Тариф</Label>
-                      <Select>
+                      <Select defaultValue={editingOrder?.tariff}>
                         <SelectTrigger>
                           <SelectValue placeholder="Выберите тариф" />
                         </SelectTrigger>
@@ -233,7 +301,7 @@ const Index = () => {
                       <Label>Дата публикации</Label>
                       <Calendar
                         mode="single"
-                        selected={selectedDate}
+                        selected={selectedDate || (editingOrder ? new Date(editingOrder.publishDate) : undefined)}
                         onSelect={setSelectedDate}
                         className="rounded-md border border-slate-200"
                         disabled={(date) => date < new Date()}
@@ -243,14 +311,20 @@ const Index = () => {
                     <div className="space-y-2">
                       <Label htmlFor="screenshot">Скриншот квитанции</Label>
                       <Input id="screenshot" type="file" accept="image/*" />
+                      {editingOrder?.screenshot && (
+                        <p className="text-sm text-slate-500">Текущий файл загружен</p>
+                      )}
                     </div>
 
                     <div className="flex justify-end space-x-3 pt-4">
-                      <Button variant="outline" onClick={() => setIsNewOrderOpen(false)}>
+                      <Button variant="outline" onClick={() => {
+                        setIsNewOrderOpen(false);
+                        setEditingOrder(null);
+                      }}>
                         Отмена
                       </Button>
                       <Button className="bg-indigo-600 hover:bg-indigo-700">
-                        Создать заказ
+                        {editingOrder ? 'Сохранить изменения' : 'Создать заказ'}
                       </Button>
                     </div>
                   </div>
@@ -282,6 +356,20 @@ const Index = () => {
                               <Badge className={`${getStatusColor(order.status)} border`}>
                                 {getStatusText(order.status)}
                               </Badge>
+                              {order.status === 'pending' && (
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  className="h-7 px-2 text-xs"
+                                  onClick={() => {
+                                    setEditingOrder(order);
+                                    setSelectedDate(new Date(order.publishDate));
+                                  }}
+                                >
+                                  <Icon name="Edit" size={12} className="mr-1" />
+                                  Редактировать
+                                </Button>
+                              )}
                             </div>
                             
                             <p className="text-slate-600 mb-3 line-clamp-2">{order.adText}</p>
