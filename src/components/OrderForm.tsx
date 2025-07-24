@@ -100,12 +100,13 @@ const OrderForm = ({ editingOrder, selectedDate, onDateSelect, onCancel, onSubmi
 
       <div className="space-y-1">
         <Label htmlFor="adText" className="text-xs">Текст рекламы</Label>
-        <Textarea 
+        <textarea
           id="adText" 
           placeholder="Введите текст рекламного объявления" 
           value={formData.adText}
           onChange={(e) => setFormData(prev => ({ ...prev, adText: e.target.value }))}
-          className="min-h-[60px] text-sm resize-none"
+          className="flex min-h-[60px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
+          rows={3}
           required
         />
       </div>
