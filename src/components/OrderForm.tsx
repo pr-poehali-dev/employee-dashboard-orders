@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -32,16 +33,21 @@ interface OrderFormProps {
 }
 
 const OrderForm = ({ editingOrder, selectedDate, onDateSelect, onCancel, onSubmit, tariffs }: OrderFormProps) => {
+  const [formData, setFormData] = useState({
+    channel: editingOrder?.channel || '',
+    adText: editingOrder?.adText || '',
+    tariff: editingOrder?.tariff || ''
+  });
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
     
-    const selectedTariff = tariffs.find(t => t.name === formData.get('tariff'));
+    const selectedTariff = tariffs.find(t => t.name === formData.tariff);
     const newOrder: Order = {
       id: editingOrder?.id || Date.now().toString(),
-      channel: formData.get('channel') as string,
-      adText: formData.get('adText') as string,
-      tariff: formData.get('tariff') as string,
+      channel: formData.channel,
+      adText: formData.adText,
+      tariff: formData.tariff,
       price: selectedTariff?.price || 0,
       status: editingOrder?.status || 'payment_pending',
       publishDate: selectedDate?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0],
@@ -58,9 +64,9 @@ const OrderForm = ({ editingOrder, selectedDate, onDateSelect, onCancel, onSubmi
         <Label htmlFor="channel" className="text-xs">Название канала</Label>
         <Input 
           id="channel" 
-          name="channel"
           placeholder="Введите название канала" 
-          defaultValue={editingOrder?.channel}
+          value={formData.channel}
+          onChange={(e) => setFormData(prev => ({ ...prev, channel: e.target.value }))}
           className="h-8 text-sm"
           required
         />
@@ -70,10 +76,10 @@ const OrderForm = ({ editingOrder, selectedDate, onDateSelect, onCancel, onSubmi
         <Label htmlFor="adText" className="text-xs">Текст рекламы</Label>
         <Textarea 
           id="adText" 
-          name="adText"
           placeholder="Введите текст рекламного объявления" 
           rows={2}
-          defaultValue={editingOrder?.adText}
+          value={formData.adText}
+          onChange={(e) => setFormData(prev => ({ ...prev, adText: e.target.value }))}
           className="text-sm resize-none"
           required
         />
@@ -81,7 +87,11 @@ const OrderForm = ({ editingOrder, selectedDate, onDateSelect, onCancel, onSubmi
 
       <div className="space-y-1">
         <Label htmlFor="tariff" className="text-xs">Тариф</Label>
-        <Select name="tariff" defaultValue={editingOrder?.tariff} required>
+        <Select 
+          value={formData.tariff} 
+          onValueChange={(value) => setFormData(prev => ({ ...prev, tariff: value }))}
+          required
+        >
           <SelectTrigger className="h-8 text-sm">
             <SelectValue placeholder="Выберите тариф" />
           </SelectTrigger>
