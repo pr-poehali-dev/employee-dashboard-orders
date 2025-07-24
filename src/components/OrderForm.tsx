@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -39,6 +39,23 @@ const OrderForm = ({ editingOrder, selectedDate, onDateSelect, onCancel, onSubmi
     tariff: editingOrder?.tariff || ''
   });
 
+  useEffect(() => {
+    setFormData({
+      channel: editingOrder?.channel || '',
+      adText: editingOrder?.adText || '',
+      tariff: editingOrder?.tariff || ''
+    });
+  }, [editingOrder]);
+
+  const handleCancel = () => {
+    setFormData({
+      channel: '',
+      adText: '',
+      tariff: ''
+    });
+    onCancel();
+  };
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
@@ -56,6 +73,15 @@ const OrderForm = ({ editingOrder, selectedDate, onDateSelect, onCancel, onSubmi
     };
     
     onSubmit(newOrder);
+    
+    // Сбрасываем форму после создания нового заказа
+    if (!editingOrder) {
+      setFormData({
+        channel: '',
+        adText: '',
+        tariff: ''
+      });
+    }
   };
 
   return (
@@ -77,10 +103,9 @@ const OrderForm = ({ editingOrder, selectedDate, onDateSelect, onCancel, onSubmi
         <Textarea 
           id="adText" 
           placeholder="Введите текст рекламного объявления" 
-          rows={2}
           value={formData.adText}
           onChange={(e) => setFormData(prev => ({ ...prev, adText: e.target.value }))}
-          className="text-sm resize-none"
+          className="min-h-[60px] text-sm resize-none"
           required
         />
       </div>
@@ -128,7 +153,7 @@ const OrderForm = ({ editingOrder, selectedDate, onDateSelect, onCancel, onSubmi
         <Button 
           variant="outline" 
           className="flex-1 h-8 text-sm"
-          onClick={onCancel}
+          onClick={handleCancel}
         >
           Отмена
         </Button>
