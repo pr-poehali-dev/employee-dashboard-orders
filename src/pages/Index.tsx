@@ -18,8 +18,9 @@ interface Order {
   adText: string;
   tariff: string;
   price: number;
-  status: 'pending' | 'processing' | 'completed';
+  status: 'payment_pending' | 'publication_pending' | 'processing' | 'completed';
   publishDate: string;
+  createdBy: string;
   screenshot?: string;
 }
 
@@ -32,7 +33,8 @@ const Index = () => {
       tariff: '3 Day @here',
       price: 150,
       status: 'processing',
-      publishDate: '2025-07-28'
+      publishDate: '2025-07-28',
+      createdBy: '@alex_promo'
     },
     {
       id: '2', 
@@ -40,8 +42,9 @@ const Index = () => {
       adText: 'a database for guilds...',
       tariff: '7d @everyone with Ping On Join',
       price: 300,
-      status: 'pending',
-      publishDate: '2025-07-30'
+      status: 'payment_pending',
+      publishDate: '2025-07-30',
+      createdBy: '@mike_ads'
     },
     {
       id: '3',
@@ -50,7 +53,18 @@ const Index = () => {
       tariff: '3 Day @everyone',
       price: 220,
       status: 'completed',
-      publishDate: '2025-07-25'
+      publishDate: '2025-07-25',
+      createdBy: '@john_market'
+    },
+    {
+      id: '4',
+      channel: '/crypto trading',
+      adText: 'Best crypto signals and trading tips for beginners and pros',
+      tariff: '7d @everyone with Join DM',
+      price: 350,
+      status: 'publication_pending',
+      publishDate: '2025-07-29',
+      createdBy: '@crypto_king'
     }
   ]);
 
@@ -59,7 +73,10 @@ const Index = () => {
   const [isNewOrderOpen, setIsNewOrderOpen] = useState(false);
   const [editingOrder, setEditingOrder] = useState<Order | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>();
-  const [paymentDetails, setPaymentDetails] = useState({ cardNumber: '4532 **** **** 1234' });
+  const [paymentDetails, setPaymentDetails] = useState({ 
+    cardNumber: '4532 **** **** 1234',
+    phoneNumber: '+7 (900) 123-45-67'
+  });
   const [isPayoutOpen, setIsPayoutOpen] = useState(false);
 
   const tariffs = [
@@ -72,7 +89,8 @@ const Index = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pending': return 'bg-orange-100 text-orange-800 border-orange-200';
+      case 'payment_pending': return 'bg-orange-100 text-orange-800 border-orange-200';
+      case 'publication_pending': return 'bg-blue-100 text-blue-800 border-blue-200';
       case 'processing': return 'bg-green-100 text-green-800 border-green-200';
       case 'completed': return 'bg-gray-100 text-gray-600 border-gray-200';
       default: return 'bg-gray-100 text-gray-600 border-gray-200';
@@ -81,7 +99,8 @@ const Index = () => {
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'pending': return 'Ожидание';
+      case 'payment_pending': return 'Ожидание подтверждения оплаты';
+      case 'publication_pending': return 'Ожидание публикации';
       case 'processing': return 'Выполняется';
       case 'completed': return 'Завершено';
       default: return status;
@@ -90,12 +109,13 @@ const Index = () => {
 
   const filteredOrders = orders.filter(order => {
     if (activeTab === 'all') return true;
+    if (activeTab === 'pending') return order.status === 'payment_pending' || order.status === 'publication_pending';
     return order.status === activeTab;
   });
 
   const stats = {
     total: orders.length,
-    pending: orders.filter(o => o.status === 'pending').length,
+    pending: orders.filter(o => o.status === 'payment_pending' || o.status === 'publication_pending').length,
     processing: orders.filter(o => o.status === 'processing').length,
     completed: orders.filter(o => o.status === 'completed').length
   };
@@ -149,6 +169,16 @@ const Index = () => {
                         value={paymentDetails.cardNumber}
                         onChange={(e) => setPaymentDetails({...paymentDetails, cardNumber: e.target.value})}
                         placeholder="0000 0000 0000 0000"
+                        className="mt-1"
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label className="text-sm font-medium">Номер телефона для СБП</Label>
+                      <Input 
+                        value={paymentDetails.phoneNumber}
+                        onChange={(e) => setPaymentDetails({...paymentDetails, phoneNumber: e.target.value})}
+                        placeholder="+7 (900) 123-45-67"
                         className="mt-1"
                       />
                     </div>
@@ -251,7 +281,10 @@ const Index = () => {
                 }
               }}>
                 <DialogTrigger asChild>
-                  <Button className="bg-indigo-600 hover:bg-indigo-700">
+                  <Button 
+                    className="bg-indigo-600 hover:bg-indigo-700"
+                    onClick={() => setIsNewOrderOpen(true)}
+                  >
                     <Icon name="Plus" size={16} className="mr-2" />
                     Добавить заказ
                   </Button>
@@ -356,7 +389,7 @@ const Index = () => {
                               <Badge className={`${getStatusColor(order.status)} border`}>
                                 {getStatusText(order.status)}
                               </Badge>
-                              {order.status === 'pending' && (
+                              {(order.status === 'payment_pending' || order.status === 'publication_pending') && (
                                 <Button 
                                   variant="outline" 
                                   size="sm"
@@ -384,8 +417,8 @@ const Index = () => {
                                 <span>{new Date(order.publishDate).toLocaleDateString('ru-RU')}</span>
                               </div>
                               <div className="flex items-center space-x-1">
-                                <Icon name="DollarSign" size={14} />
-                                <span>${order.price}</span>
+                                <Icon name="User" size={14} />
+                                <span>{order.createdBy}</span>
                               </div>
                             </div>
                           </div>
